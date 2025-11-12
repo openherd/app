@@ -12,6 +12,15 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css"/>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+    <link rel="stylesheet" href="./md3/theme.css"/>
+    <link rel="stylesheet" href="./md3/specs/index.css"/>
+    <link rel="stylesheet" href="./md3/ionic/index.css"/>
+
     <script
       type="module"
       src="https://unpkg.com/@ionic/pwa-elements@latest/dist/ionicpwaelements/ionicpwaelements.esm.js"
@@ -72,7 +81,12 @@
         font-size: 18px;
         font-weight: 500;
       }
-    
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+        font-size: 24px;
+        line-height: 1;
+        vertical-align: middle;
+      }
     </style>
   </head>
   <body>
@@ -82,163 +96,180 @@
     </div>
 
     <ion-app>
-      <ion-header>
-        <ion-toolbar color="primary">
-          <ion-title>OpenHerd</ion-title>
-          <ion-buttons slot="end">
-            <ion-button id="sync-btn" style="display: none;">
-              <ion-icon slot="icon-only" name="cloud-upload-outline"></ion-icon>
-              <ion-badge color="warning" style="position: absolute; top: 4px; right: 4px; font-size: 10px;">0</ion-badge>
-            </ion-button>
-            <ion-button id="refresh-btn">
-              <ion-icon slot="icon-only" name="refresh"></ion-icon>
-            </ion-button>
-            <ion-button id="settings-btn">
-              <ion-icon slot="icon-only" name="settings"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
+      <ion-tabs>
+        <ion-router-outlet>
+          <ion-page id="feed-page" class="ion-page">
+            <ion-header>
+              <ion-toolbar color="primary">
+                <ion-title>Feed</ion-title>
+                <ion-buttons slot="end">
+                  <ion-button id="sync-btn" style="display: none;">
+                    <ion-badge color="warning" style="position: absolute; top: 8px; right: 8px; font-size: 10px;">0</ion-badge>
+                    <span class="material-symbols-outlined" slot="icon-only">cloud_upload</span>
+                  </ion-button>
+                </ion-buttons>
+              </ion-toolbar>
+            </ion-header>
+            <ion-content>
+              <ion-refresher slot="fixed" id="feed-refresher">
+                <ion-refresher-content></ion-refresher-content>
+              </ion-refresher>
+              <div id="posts-container"></div>
+            </ion-content>
+          </ion-page>
 
-      <ion-content class="ion-padding">
-        <div id="posts-container">
-        </div>
-      </ion-content>
+          <ion-page id="compose-page" class="ion-page" style="display: none;">
+            <ion-header>
+              <ion-toolbar>
+                <ion-title>New Post</ion-title>
+              </ion-toolbar>
+            </ion-header>
+            <ion-content class="ion-padding">
+              <ion-list>
+                <ion-item>
+                  <ion-label position="stacked">What's on your mind?</ion-label>
+                  <ion-textarea
+                    id="post-text"
+                    placeholder="Share something with the herd..."
+                    rows="8"
+                    maxlength="500"
+                    auto-grow="true"
+                  ></ion-textarea>
+                </ion-item>
+              </ion-list>
 
-      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button id="compose-btn" color="secondary">
-          <ion-icon name="create"></ion-icon>
-        </ion-fab-button>
-      </ion-fab>
+              <ion-card>
+                <ion-card-content>
+                  <ion-note>
+                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px;">location_on</span>
+                    Your location will be fuzzed for privacy (±2-5km depending on settings)
+                  </ion-note>
+                </ion-card-content>
+              </ion-card>
 
-      <ion-modal id="composer-modal" trigger="compose-btn">
-        <ion-header>
-          <ion-toolbar color="secondary">
-            <ion-title>New Post</ion-title>
-            <ion-buttons slot="end">
-              <ion-button id="cancel-post">Cancel</ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content class="ion-padding">
-          <ion-item>
-            <ion-label position="stacked">What's on your mind?</ion-label>
-            <ion-textarea
-              id="post-text"
-              placeholder="Share something with the herd..."
-              rows="6"
-              maxlength="500"
-            ></ion-textarea>
-          </ion-item>
+              <ion-button
+                id="submit-post"
+                color="primary"
+               
+              >
+                <span class="material-symbols-outlined" slot="start">send</span>
+                Post to Herd
+              </ion-button>
+            </ion-content>
+          </ion-page>
 
-          <ion-note class="ion-padding">
-            <ion-icon name="location"></ion-icon>
-            Your location will be fuzzed for privacy (±2-5km depending on settings)
-          </ion-note>
+          <ion-page id="settings-page" class="ion-page" style="display: none;">
+            <ion-header>
+              <ion-toolbar color="primary">
+                <ion-title>Settings</ion-title>
+              </ion-toolbar>
+            </ion-header>
+            <ion-content>
+              <ion-list>
 
-          <ion-button
-            id="submit-post"
-            expand="block"
-            color="secondary"
-            class="ion-margin-top"
-          >
-            <ion-icon name="send" slot="start"></ion-icon>
-            Post to Herd
-          </ion-button>
-        </ion-content>
-      </ion-modal>
+                <ion-item>
+                  <ion-label position="stacked">Default Cow Server</ion-label>
+                  <ion-input
+                    id="default-cow"
+                    type="url"
+                    placeholder="https://cow.openherd.network"
+                  ></ion-input>
+                </ion-item>
 
-      <ion-modal id="settings-modal" trigger="settings-btn">
-        <ion-header>
-          <ion-toolbar color="primary">
-            <ion-title>Settings</ion-title>
-            <ion-buttons slot="end">
-              <ion-button id="cancel-settings">Cancel</ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content class="ion-padding">
-          <ion-list>
-            <ion-list-header>
-              <ion-label>Cow Preferences</ion-label>
-            </ion-list-header>
+                <ion-item>
+                  <ion-label>Auto-discover local Cows</ion-label>
+                  <ion-toggle id="auto-discovery" checked></ion-toggle>
+                </ion-item>
 
-            <ion-item>
-              <ion-label position="stacked">Default Cow Server</ion-label>
-              <ion-input
-                id="default-cow"
-                type="url"
-                placeholder="https://cow.openherd.network"
-              ></ion-input>
-            </ion-item>
+                <ion-item button id="discover-cows">
+                  <span class="material-symbols-outlined" slot="start">search</span>
+                  <ion-label>Discover Local Cows</ion-label>
+                </ion-item>
+              </ion-list>
 
-            <ion-item>
-              <ion-label>Auto-discover local Cows</ion-label>
-              <ion-toggle id="auto-discovery" checked></ion-toggle>
-            </ion-item>
+              <ion-card>
+                <ion-card-header>
+                  <ion-card-subtitle>Discovered Local Cows</ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-list id="discovered-cows-list">
+                    <ion-note>No local Cows discovered yet</ion-note>
+                  </ion-list>
+                </ion-card-content>
+              </ion-card>
 
-            <ion-button
-              id="discover-cows"
-              expand="block"
-              fill="outline"
-              class="ion-margin-top"
-            >
-              <ion-icon name="search" slot="start"></ion-icon>
-              Discover Now
-            </ion-button>
+              <ion-list>
+                <ion-list-header>
+                  <ion-label>Privacy & Location</ion-label>
+                </ion-list-header>
 
-            <ion-card>
-              <ion-card-header>
-                <ion-card-subtitle>Discovered Local Cows</ion-card-subtitle>
-              </ion-card-header>
-              <ion-card-content>
-                <ion-list id="discovered-cows-list">
-                  <ion-note>No local Cows discovered yet</ion-note>
-                </ion-list>
-              </ion-card-content>
-            </ion-card>
+                <ion-item>
+                  <ion-label>Distance Unit</ion-label>
+                  <ion-select id="distance-unit" value="metric">
+                    <ion-select-option value="metric">Metric (km/m)</ion-select-option>
+                    <ion-select-option value="imperial">Imperial (mi/ft)</ion-select-option>
+                  </ion-select>
+                </ion-item>
 
-            <ion-list-header class="ion-margin-top">
-              <ion-label>Privacy & Location Skewing</ion-label>
-            </ion-list-header>
+                <ion-item>
+                  <ion-label>Skew Mode</ion-label>
+                  <ion-select id="skew-mode" value="privacy">
+                    <ion-select-option value="privacy">Privacy (Recommended)</ion-select-option>
+                    <ion-select-option value="uniform">Uniform Random</ion-select-option>
+                    <ion-select-option value="plausible">Plausible</ion-select-option>
+                    <ion-select-option value="urbanSnap">Urban Snap (50m)</ion-select-option>
+                  </ion-select>
+                </ion-item>
+              </ion-list>
 
-            <ion-item>
-              <ion-label position="stacked">Distance Unit</ion-label>
-              <ion-select id="distance-unit" value="metric">
-                <ion-select-option value="metric">Metric (km/m)</ion-select-option>
-                <ion-select-option value="imperial">Imperial (mi/ft)</ion-select-option>
-              </ion-select>
-            </ion-item>
+              <ion-card>
+                <ion-card-content>
+                  <ion-text>
+                    <p style="font-size: 0.9em; margin: 0;">
+                      <strong>Privacy:</strong> Larger skew in rural areas (2.5-5km), smaller in cities (1-3km). Best for anonymity.<br>
+                      <strong>Uniform:</strong> Equal probability within range.<br>
+                      <strong>Plausible:</strong> Shorter distances more likely, looks realistic but less private.<br>
+                      <strong>Urban Snap:</strong> Fixed 50m for dense areas.
+                    </p>
+                  </ion-text>
+                </ion-card-content>
+              </ion-card>
 
-            <ion-item>
-              <ion-label position="stacked">Skew Mode</ion-label>
-              <ion-select id="skew-mode" value="privacy">
-                <ion-select-option value="privacy">Privacy (Recommended)</ion-select-option>
-                <ion-select-option value="uniform">Uniform Random</ion-select-option>
-                <ion-select-option value="plausible">Plausible</ion-select-option>
-                <ion-select-option value="urbanSnap">Urban Snap (50m)</ion-select-option>
-              </ion-select>
-            </ion-item>
-            <br>
-            <ion-note>
-              <strong>Privacy:</strong> Larger skew in rural areas (2.5-5km), smaller in cities (1-3km). Best for anonymity.<br>
-              <strong>Uniform:</strong> Equal probability within range.<br>
-              <strong>Plausible:</strong> Shorter distances more likely, looks realistic but less private.<br>
-              <strong>Urban Snap:</strong> Fixed 50m for dense areas.
-            </ion-note>
-          </ion-list>
+              <div class="ion-padding">
+                <ion-button
+                  id="save-settings"
+                  color="primary"
+                >
+                  <span class="material-symbols-outlined" slot="start">save</span>
+                  Save Settings
+                </ion-button>
+              </div>
+              <br>
+              <br>
+              <br>
+            </ion-content>
 
-          <ion-button
-            id="save-settings"
-            expand="block"
-            color="primary"
-            class="ion-margin-top"
-          >
-            <ion-icon name="save" slot="start"></ion-icon>
-            Save Settings
-          </ion-button>
-        </ion-content>
-      </ion-modal>
+          </ion-page>
+        </ion-router-outlet>
+
+        <ion-tab-bar slot="bottom">
+          <ion-tab-button tab="feed" id="tab-feed">
+            <span class="material-symbols-outlined">home</span>
+            <ion-label>Feed</ion-label>
+          </ion-tab-button>
+
+          <ion-tab-button tab="compose" id="tab-compose">
+            <span class="material-symbols-outlined">edit_square</span>
+            <ion-label>Post</ion-label>
+          </ion-tab-button>
+
+          <ion-tab-button tab="settings" id="tab-settings">
+            <span class="material-symbols-outlined">settings</span>
+            <ion-label>Settings</ion-label>
+          </ion-tab-button>
+        </ion-tab-bar>
+      </ion-tabs>
+
     </ion-app>
 
     <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>

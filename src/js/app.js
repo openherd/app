@@ -7,8 +7,7 @@ class OpenHerdApp {
     this.posts = [];
     this.loading = false;
     this.currentLocation = null;
-    this.composerOpen = false;
-    this.settingsOpen = false;
+    this.currentTab = 'feed';
 
     this.init();
   }
@@ -86,41 +85,32 @@ class OpenHerdApp {
 
   setupEventListeners() {
 
-    document.getElementById('refresh-btn').addEventListener('click', () => {
-      this.loadPosts();
+    document.getElementById('tab-feed').addEventListener('click', () => {
+      this.switchTab('feed');
+    });
+
+    document.getElementById('tab-compose').addEventListener('click', () => {
+      this.switchTab('compose');
+    });
+
+    document.getElementById('tab-settings').addEventListener('click', () => {
+      this.switchTab('settings');
     });
 
 
-    document.getElementById('compose-btn').addEventListener('click', () => {
-      this.openComposer();
-    });
-
-
-    document.getElementById('settings-btn').addEventListener('click', () => {
-      this.openSettings();
-    });
-
-
+    const refresher = document.getElementById('feed-refresher');
+    if (refresher) {
+      refresher.addEventListener('ionRefresh', async (event) => {
+        await this.loadPosts();
+        event.target.complete();
+      });
+    }
     document.getElementById('submit-post').addEventListener('click', () => {
       this.submitPost();
     });
-
-
-    document.getElementById('cancel-post').addEventListener('click', () => {
-      this.closeComposer();
-    });
-
-
     document.getElementById('save-settings').addEventListener('click', () => {
       this.saveSettings();
     });
-
-
-    document.getElementById('cancel-settings').addEventListener('click', () => {
-      this.closeSettings();
-    });
-
-
     document.getElementById('discover-cows').addEventListener('click', () => {
       this.discoverCows();
     });
@@ -131,6 +121,23 @@ class OpenHerdApp {
       syncBtn.addEventListener('click', () => {
         this.syncPendingPosts();
       });
+    }
+  }
+
+  switchTab(tab) {
+    this.currentTab = tab;
+    document.getElementById('feed-page').style.display = 'none';
+    document.getElementById('compose-page').style.display = 'none';
+    document.getElementById('settings-page').style.display = 'none';
+    document.getElementById(`${tab}-page`).style.display = 'block';
+
+    document.querySelectorAll('ion-tab-button').forEach(btn => {
+      btn.classList.remove('tab-selected');
+    });
+    document.getElementById(`tab-${tab}`).classList.add('tab-selected');
+
+    if (tab === 'settings') {
+      this.loadSettingsUI();
     }
   }
 
@@ -201,7 +208,7 @@ class OpenHerdApp {
       container.innerHTML = `
         <ion-card>
           <ion-card-content>
-            <p style="text-align: center; color: var(--ion-color-medium);">
+            <p style="text-align: center;">
               No posts yet. Be the first to moo! 🐄
             </p>
           </ion-card-content>
@@ -240,7 +247,7 @@ class OpenHerdApp {
       <ion-card${post.isPending ? ' style="border-left: 4px solid var(--ion-color-warning);"' : ''}>
         <ion-card-header>
           <ion-card-subtitle>
-            <ion-icon name="person-circle-outline"></ion-icon>
+            <span class="material-symbols-outlined">account_circle</span>
             ${shortId} &bull; ${timeAgo}
             ${post.isPending ? ' <ion-badge color="warning">Pending Sync</ion-badge>' : ''}
           </ion-card-subtitle>
@@ -250,8 +257,8 @@ class OpenHerdApp {
           ${replies.length > 0 ? `
             <ion-badge color="primary">${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}</ion-badge>
           ` : ''}
-          <div style="margin-top: 12px; font-size: 0.85em; color: var(--ion-color-medium);">
-            <ion-icon name="location-outline"></ion-icon>
+          <div style="margin-top: 12px; font-size: 0.85em;">
+            <span class="material-symbols-outlined">location_on</span>
             ${locationDisplay}
           </div>
         </ion-card-content>
@@ -303,19 +310,6 @@ class OpenHerdApp {
     this.showToast(message, 'primary', 3000);
   }
 
-  openComposer() {
-    const modal = document.getElementById('composer-modal');
-    modal.present();
-    this.composerOpen = true;
-  }
-
-  closeComposer() {
-    const modal = document.getElementById('composer-modal');
-    modal.dismiss();
-    this.composerOpen = false;
-    document.getElementById('post-text').value = '';
-  }
-
   async submitPost() {
     const text = document.getElementById('post-text').value.trim();
 
@@ -347,15 +341,18 @@ class OpenHerdApp {
 
       if (success > 0) {
         this.showSuccess(`Posted to ${success} Cow${success > 1 ? 's' : ''}! 🐄`);
-        this.closeComposer();
+        document.getElementById('post-text').value = '';
+        this.switchTab('feed');
         await this.loadPosts();
       } else if (!openherd.isOnline()) {
         this.showInfo('Post saved offline. Will sync when online! 🐄');
-        this.closeComposer();
+        document.getElementById('post-text').value = '';
+        this.switchTab('feed');
         await this.loadPosts();
       } else {
         this.showInfo('Post queued for sync. Will retry later! 🐄');
-        this.closeComposer();
+        document.getElementById('post-text').value = '';
+        this.switchTab('feed');
         await this.loadPosts();
       }
     } catch (error) {
@@ -364,23 +361,12 @@ class OpenHerdApp {
     }
   }
 
-  openSettings() {
-    const modal = document.getElementById('settings-modal');
-
-
+  loadSettingsUI() {
     document.getElementById('default-cow').value = openherd.settings.defaultCow;
     document.getElementById('skew-mode').value = openherd.settings.skewMode;
     document.getElementById('auto-discovery').checked = openherd.settings.autoDiscovery;
     document.getElementById('distance-unit').value = openherd.settings.distanceUnit;
-
-    modal.present();
-    this.settingsOpen = true;
-  }
-
-  closeSettings() {
-    const modal = document.getElementById('settings-modal');
-    modal.dismiss();
-    this.settingsOpen = false;
+    this.updateDiscoveredCowsList();
   }
 
   saveSettings() {
@@ -391,14 +377,14 @@ class OpenHerdApp {
 
     openherd.saveSettings();
 
-
     if (openherd.settings.autoDiscovery) {
       discovery.startPeriodicDiscovery();
     } else {
       discovery.stopPeriodicDiscovery();
     }
 
-    this.closeSettings();
+    this.showSuccess('Settings saved! 🐄');
+    this.switchTab('feed');
     this.loadPosts();
   }
 
@@ -430,7 +416,7 @@ class OpenHerdApp {
 
     container.innerHTML = cows.map(cow => `
       <ion-item>
-        <ion-icon name="server-outline" slot="start"></ion-icon>
+        <span class="material-symbols-outlined" slot="start">dns</span>
         <ion-label>
           <h3>${cow.name}</h3>
           <p>${cow.url}</p>
@@ -440,9 +426,8 @@ class OpenHerdApp {
   }
 
   startAutoRefresh() {
-
     setInterval(() => {
-      if (!this.composerOpen && !this.settingsOpen) {
+      if (this.currentTab === 'feed') {
         this.loadPosts();
       }
     }, 30000);

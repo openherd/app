@@ -7,3 +7,7 @@ node_modules/
 dist/
 
 resources/android/**/*
+
+.secrets
+*.jks
+*.keystore
