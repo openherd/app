@@ -1,0 +1,10 @@
+{
+  "appId": "network.openherd.calf",
+  "appName": "OpenHerd Calf",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": true
+    }
+  }
+}

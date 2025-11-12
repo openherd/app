@@ -1,0 +1,34 @@
+{
+  "name": "openherd-calf",
+  "version": "0.0.1",
+  "description": "OpenHerd Calf",
+  "type": "module",
+  "keywords": [
+    "openherd",
+    "capacitor",
+    "mobile",
+    "anonymous",
+    "decentralized"
+  ],
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/camera": "latest",
+    "@capacitor/core": "latest",
+    "@capacitor/geolocation": "^7.1.5",
+    "@capacitor/splash-screen": "latest",
+    "@devioarts/capacitor-mdns": "^0.0.2",
+    "@ionic/core": "^8.7.9",
+    "openpgp": "^6.2.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "latest",
+    "vite": "^5.4.2"
+  },
+  "author": "OpenHerd",
+  "license": "AGPL-3.0-only"
+}

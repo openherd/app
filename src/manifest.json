@@ -1,0 +1,14 @@
+{
+  "name": "OpenHerd Calf",
+  "short_name": "OpenHerd",
+  "start_url": "index.html",
+  "display": "standalone",
+  "icons": [{
+    "src": "assets/imgs/logo.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }],
+  "background_color": "#8b4513",
+  "theme_color": "#8b4513",
+  "description": "Decentralized anonymous communication protocol"
+}

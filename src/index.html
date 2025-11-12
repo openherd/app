@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8"/>
+    <title>OpenHerd Calf</title>
+    <meta
+      name="viewport"
+      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+/>
+    <meta name="format-detection" content="telephone=no"/>
+    <meta name="msapplication-tap-highlight" content="no"/>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css"/>
+
+    <script
+      type="module"
+      src="https://unpkg.com/@ionic/pwa-elements@latest/dist/ionicpwaelements/ionicpwaelements.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/@ionic/pwa-elements@latest/dist/ionicpwaelements/ionicpwaelements.js"
+    ></script>
+
+    <link rel="icon" type="image/x-icon" href="./assets/icon/favicon.ico"/>
+    <link rel="manifest" href="./manifest.json"/>
+    <meta name="theme-color" content="#8b4513"/>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      ion-app {
+        opacity: 0;
+        transition: opacity 0.3s ease-in;
+      }
+
+      ion-app.loaded {
+        opacity: 1;
+      }
+
+      #app-loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #8b4513;
+        z-index: 9999;
+        transition: opacity 0.3s ease-out;
+      }
+
+      #app-loading-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #app-loading-screen ion-spinner {
+        width: 50px;
+        height: 50px;
+        color: white;
+      }
+
+      #app-loading-screen .loading-text {
+        color: white;
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: 500;
+      }
+    
+    </style>
+  </head>
+  <body>
+    <div id="app-loading-screen">
+      <ion-spinner name="crescent"></ion-spinner>
+      <div class="loading-text">Loading OpenHerd...</div>
+    </div>
+
+    <ion-app>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>OpenHerd</ion-title>
+          <ion-buttons slot="end">
+            <ion-button id="sync-btn" style="display: none;">
+              <ion-icon slot="icon-only" name="cloud-upload-outline"></ion-icon>
+              <ion-badge color="warning" style="position: absolute; top: 4px; right: 4px; font-size: 10px;">0</ion-badge>
+            </ion-button>
+            <ion-button id="refresh-btn">
+              <ion-icon slot="icon-only" name="refresh"></ion-icon>
+            </ion-button>
+            <ion-button id="settings-btn">
+              <ion-icon slot="icon-only" name="settings"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <div id="posts-container">
+        </div>
+      </ion-content>
+
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button id="compose-btn" color="secondary">
+          <ion-icon name="create"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+
+      <ion-modal id="composer-modal" trigger="compose-btn">
+        <ion-header>
+          <ion-toolbar color="secondary">
+            <ion-title>New Post</ion-title>
+            <ion-buttons slot="end">
+              <ion-button id="cancel-post">Cancel</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <ion-item>
+            <ion-label position="stacked">What's on your mind?</ion-label>
+            <ion-textarea
+              id="post-text"
+              placeholder="Share something with the herd..."
+              rows="6"
+              maxlength="500"
+            ></ion-textarea>
+          </ion-item>
+
+          <ion-note class="ion-padding">
+            <ion-icon name="location"></ion-icon>
+            Your location will be fuzzed for privacy (±2-5km depending on settings)
+          </ion-note>
+
+          <ion-button
+            id="submit-post"
+            expand="block"
+            color="secondary"
+            class="ion-margin-top"
+          >
+            <ion-icon name="send" slot="start"></ion-icon>
+            Post to Herd
+          </ion-button>
+        </ion-content>
+      </ion-modal>
+
+      <ion-modal id="settings-modal" trigger="settings-btn">
+        <ion-header>
+          <ion-toolbar color="primary">
+            <ion-title>Settings</ion-title>
+            <ion-buttons slot="end">
+              <ion-button id="cancel-settings">Cancel</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <ion-list>
+            <ion-list-header>
+              <ion-label>Cow Preferences</ion-label>
+            </ion-list-header>
+
+            <ion-item>
+              <ion-label position="stacked">Default Cow Server</ion-label>
+              <ion-input
+                id="default-cow"
+                type="url"
+                placeholder="https://cow.openherd.network"
+              ></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label>Auto-discover local Cows</ion-label>
+              <ion-toggle id="auto-discovery" checked></ion-toggle>
+            </ion-item>
+
+            <ion-button
+              id="discover-cows"
+              expand="block"
+              fill="outline"
+              class="ion-margin-top"
+            >
+              <ion-icon name="search" slot="start"></ion-icon>
+              Discover Now
+            </ion-button>
+
+            <ion-card>
+              <ion-card-header>
+                <ion-card-subtitle>Discovered Local Cows</ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-list id="discovered-cows-list">
+                  <ion-note>No local Cows discovered yet</ion-note>
+                </ion-list>
+              </ion-card-content>
+            </ion-card>
+
+            <ion-list-header class="ion-margin-top">
+              <ion-label>Privacy & Location Skewing</ion-label>
+            </ion-list-header>
+
+            <ion-item>
+              <ion-label position="stacked">Distance Unit</ion-label>
+              <ion-select id="distance-unit" value="metric">
+                <ion-select-option value="metric">Metric (km/m)</ion-select-option>
+                <ion-select-option value="imperial">Imperial (mi/ft)</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Skew Mode</ion-label>
+              <ion-select id="skew-mode" value="privacy">
+                <ion-select-option value="privacy">Privacy (Recommended)</ion-select-option>
+                <ion-select-option value="uniform">Uniform Random</ion-select-option>
+                <ion-select-option value="plausible">Plausible</ion-select-option>
+                <ion-select-option value="urbanSnap">Urban Snap (50m)</ion-select-option>
+              </ion-select>
+            </ion-item>
+            <br>
+            <ion-note>
+              <strong>Privacy:</strong> Larger skew in rural areas (2.5-5km), smaller in cities (1-3km). Best for anonymity.<br>
+              <strong>Uniform:</strong> Equal probability within range.<br>
+              <strong>Plausible:</strong> Shorter distances more likely, looks realistic but less private.<br>
+              <strong>Urban Snap:</strong> Fixed 50m for dense areas.
+            </ion-note>
+          </ion-list>
+
+          <ion-button
+            id="save-settings"
+            expand="block"
+            color="primary"
+            class="ion-margin-top"
+          >
+            <ion-icon name="save" slot="start"></ion-icon>
+            Save Settings
+          </ion-button>
+        </ion-content>
+      </ion-modal>
+    </ion-app>
+
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
+    <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
+
+    <script src="./js/app.js" type="module"></script>
+  </body>
+</html>
